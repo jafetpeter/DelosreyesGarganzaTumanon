@@ -37,7 +37,7 @@ const FloatingLabelSelect: FC<FloatingLabelSelectProps> = ({
         <select
           name={name}
           id={name}
-          value={value ?? ""}
+          {...(value !== undefined ? { value } : {})}
           onChange={onChange}
           className={`${
             newSelectClassName
