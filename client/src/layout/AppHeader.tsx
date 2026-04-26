@@ -1,49 +1,45 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useHeader } from "../contexts/HeaderContext";
 import { useSidebar } from "../contexts/SidebarContext";
 import { useAuth } from "../contexts/AuthContext";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 
 const AppHeader = () => {
   const { isOpen, toggleUserMenu } = useHeader();
   const { toggleSidebar } = useSidebar();
-  const {user, logout} = useAuth()
-  const navigate = useNavigate()
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-  const [isLoading, setIsLoading] = useState(false)
-  
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleLogout = async (e: FormEvent) => {
-        try {
-          e.preventDefault()
+    try {
+      e.preventDefault();
 
-          setIsLoading(true)
-          await logout()
-          navigate("/")
-        } catch (error) { 
-          console.error("Unexpected server error occurred during logging user out: ", error)
-        } finally {
-          setIsLoading(false)
-        }
-  }
+      setIsLoading(true);
+      await logout();
+      navigate("/");
+    } catch (error) {
+      console.error(
+        "Unexpected server error occurred during logging user out: ",
+        error,
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const handleUserFullnameFormat = () => {
-    if (!user) return ""
+    if (!user) return "";
 
     let fullname = `${user.user.last_name}, ${user.user.first_name}`;
     if (user.user.middle_name) {
       fullname += ` ${user.user.middle_name.charAt(0)}.`;
-  }
-    if (user.user.suffif_name) {
-      fullname += ` ${user.user.suffif_name}`;
-
     }
-    return fullname
-  }
-
-  useEffect (() => {
-    if(user) {
-      handleUserFullnameFormat
+    if (user.user.suffix) {
+      fullname += ` ${user.user.suffix}`;
     }
-  }, [user])
+    return fullname;
+  };
 
   return (
     <>
@@ -117,26 +113,24 @@ const AppHeader = () => {
                     className="px-4 py-3 border-b border-default-medium"
                     role="none"
                   >
-
                     <p
                       className="text-sm text-gray-900 truncate dark:text-white"
                       role="none"
                     >
-                     {handleUserFullnameFormat()}
+                      {handleUserFullnameFormat()}
                     </p>
                   </div>
-                  <ul className="p-2 text-sm text-body font-medium" role="none">
-                    <li>
+                  <ul className="p-2 text-sm text-body font-medium" role="menu">
+                    <li role="none">
                       <button
                         type="submit"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300
-                           dark:hover:bg-gray-600 dark:hover:text-white w-full text-start cursor-pointer disabled:cursor-not-allowed" 
-                           role="menuitem"
-                            onClick={handleLogout}
-                            disabled={isLoading}
+                           dark:hover:bg-gray-600 dark:hover:text-white w-full text-start cursor-pointer disabled:cursor-not-allowed"
+                        role="menuitem"
+                        onClick={handleLogout}
+                        disabled={isLoading}
                       >
-                        {isLoading ? 'Signing out...' : 'Sign out'}
-                        Sign out
+                        {isLoading ? "Signing out..." : "Sign out"}
                       </button>
                     </li>
                   </ul>

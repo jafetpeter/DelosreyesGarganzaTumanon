@@ -41,6 +41,7 @@ const UserMainPage = () => {
     <>
       <ToastMessage
         message={toastMessage}
+        isFailed={false}
         isVisible={toastMessageIsVisible}
         onClose={closeToastMessage}
       />
