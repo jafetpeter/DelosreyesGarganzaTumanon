@@ -30,8 +30,8 @@ class DatabaseSeeder extends Seeder
 
         ]);
 
-        $birthdate = fake()->date();
-        $age = date_diff(date_create($birthdate), date_create('now'))->y;
+        $birthDate = fake()->date();
+        $age = date_diff(date_create($birthDate), date_create('now'))->y;
 
         User::factory()->create([
             'first_name' => 'John',
@@ -39,11 +39,13 @@ class DatabaseSeeder extends Seeder
             'last_name' => 'Doe',
             'suffix_name' => null,
             'gender_id' => Gender::inRandomOrder()->first()->gender_id,
-            'birth_date' => $birthdate,
+            'birth_date' => $birthDate,
             'age' => $age,
             'username' => 'johndoe',
             'password' => bcrypt('johndoe'),
         ]);
+
+        User::factory(100)->create();
 
     }
 }
