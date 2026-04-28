@@ -31,12 +31,12 @@ const AppHeader = () => {
   const handleUserFullnameFormat = () => {
     if (!user) return "";
 
-    let fullname = `${user.user.last_name}, ${user.user.first_name}`;
-    if (user.user.middle_name) {
-      fullname += ` ${user.user.middle_name.charAt(0)}.`;
+    let fullname = `${user.last_name}, ${user.first_name}`;
+    if (user.middle_name) {
+      fullname += ` ${user.middle_name.charAt(0)}.`;
     }
-    if (user.user.suffix) {
-      fullname += ` ${user.user.suffix}`;
+    if (user.suffix_name) {
+      fullname += ` ${user.suffix_name}`;
     }
     return fullname;
   };

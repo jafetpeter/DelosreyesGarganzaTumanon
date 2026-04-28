@@ -40,6 +40,7 @@ class UserController extends Controller
     }
     public function storeUser(Request $request) {
         $validated = $request->validate([
+            'add_user_profile_picture' => ['nullable', 'image', 'mimes:png,jpg,jpeg'],
             'first_name' => ['required', 'max:55'],
             'middle_name' => ['nullable', 'max:55'],
             'last_name' => ['required', 'max:55'],
@@ -51,9 +52,20 @@ class UserController extends Controller
             'password_confirmation' => ['required', 'min:6', 'max:12']
         ]);
 
+        $profilePicture = null;
+        if ($request->hasFile('add_user_profile_picture')) {
+            $file = $request->file('add_user_profile_picture');
+            $filenameWithExtension = $file->getClientOriginalName();
+            $filename = pathinfo($filenameWithExtension, PATHINFO_FILENAME);
+            $filenameToStore = sha1($filename . '_' . time());
+            $file->storeAs('public/img/user/profile_pictures', $filenameToStore);
+            $profilePicture = $filenameToStore;
+        }
+
         $age = date_diff(date_create($validated['birth_date']), date_create('now'))->y;
 
         User::create([
+            'profile_picture' => $profilePicture,
             'first_name'=> $validated['first_name'],
             'middle_name' => $validated ['middle_name'],
             'last_name' => $validated ['last_name'],
