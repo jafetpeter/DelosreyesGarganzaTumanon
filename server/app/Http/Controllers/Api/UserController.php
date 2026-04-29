@@ -6,10 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
-    public function loadUsers(Request $request) 
+    public function loadUsers(Request $request)
     {
         $search = $request-> input('search');
 
@@ -20,7 +21,7 @@ class UserController extends Controller
         ->orderBy('tbl_users.first_name', 'asc')
         ->orderBy('tbl_users.middle_name', 'asc')
         ->orderBy('tbl_users.suffix_name', 'asc');
-        
+
         if($search) {
             $users->where(function ($user) use ($search){
                 $user->where('tbl_users.first_name', 'like', "%{$search}%")
@@ -32,6 +33,14 @@ class UserController extends Controller
         }
 
         $users = $users->paginate(15);
+
+        $users->getCollection()->transform(function ($user) {
+        $user->profile_picture = $user->profile_picture? url('storage/img/user/profile_pictures/' .
+        $user->profile_picture): null;
+
+    return $user;
+});
+
 
         return response()->json([
             'users' => $users
@@ -59,7 +68,7 @@ class UserController extends Controller
             $filename = pathinfo($filenameWithExtension, PATHINFO_FILENAME);
             $filenameToStore = sha1($filename . '_' . time());
             $file->storeAs('public/img/user/profile_pictures', $filenameToStore);
-            $profilePicture = $filenameToStore;
+            $validated['add_user_profile_picture'] = $filenameToStore;
         }
 
         $age = date_diff(date_create($validated['birth_date']), date_create('now'))->y;
@@ -86,6 +95,7 @@ class UserController extends Controller
 
     public function updateUser(Request $request, User $user) {
         $validated = $request->validate([
+            'edit_user_profile_picture' => ['nullable', 'image', 'mimes:png,jpg,jpeg'],
             'first_name' => ['required', 'max:55'],
             'middle_name' => ['nullable', 'max:55'],
             'last_name' => ['required', 'max:55'],
@@ -95,9 +105,30 @@ class UserController extends Controller
             'username' => ['required', 'min:6', 'max:12', Rule::unique('tbl_users', 'username')-> ignore($user)]
         ]);
 
+        if($request->has('remove_profile_picture') && $request->remove_profile_picture == '1') {
+            if($user->profile_picture && Storage::exists('public/img/user/profile_pictures/' . $user->profile_picture)) {
+                Storage::delete('public/img/user/profile_pictures/' . $user->profile_picture);
+                $user->profile_picture = null;
+            }
+
+        } else if ($request->hasFile('edit_user_profile_picture')) {
+            if($user->profile_picture && Storage::exists('public/img/user/profile_pictures/' . $user->profile_picture)) {
+                Storage::delete('public/img/user/profile_pictures/' . $user->profile_picture);
+            }
+
+            $file = $request->file('edit_user_profile_picture');
+            $filenameWithExtension = $file->getClientOriginalName();
+            $filename = pathinfo($filenameWithExtension, PATHINFO_FILENAME);
+            $filenameToStore = sha1($filename . '_' . time());
+            $file->storeAs('public/img/user/profile_pictures', $filenameToStore);
+            $validated['edit_profile_picture'] = $filenameToStore;
+
+        }
+
         $age = date_diff(date_create($validated['birth_date']), date_create('now'))->y;
 
         $user->update([
+            'profile_picture' => $validated['edit_profile_picture'] ?? $user->profile_picture,
             'first_name'=> $validated['first_name'],
             'middle_name' => $validated ['middle_name'],
             'last_name' => $validated ['last_name'],
@@ -107,6 +138,9 @@ class UserController extends Controller
             'age' => $age,
             'username' => $validated ['username']
         ]);
+
+       $user->profile_picture = $user->profile_picture? url('storage/img/user/profile_pictures/' .
+        $user->profile_picture): null;
 
         return response()->json([
             'message' => 'User Successfully Updated.',

@@ -77,9 +77,9 @@ const AddUserFormModal: FC<AddUserFormModalProps> = ({
         formData.append("add_user_profile_picture", addUserProfilePicture);
       }
       formData.append("first_name", firstName);
-      formData.append("middle_name", middleName);
+      formData.append("middle_name", middleName || "");
       formData.append("last_name", lastName);
-      formData.append("suffix_name", suffixName);
+      formData.append("suffix_name", suffixName || "");
       formData.append("gender", gender);
       formData.append("birth_date", birthDate);
       formData.append("username", username);
@@ -168,7 +168,7 @@ const AddUserFormModal: FC<AddUserFormModalProps> = ({
               name="add_user_profile_picture"
               value={addUserProfilePicture}
               onChange={setAddUserProfilePicture}
-              errors={errors.profile_picture}
+              errors={errors.add_user_profile_picture}
             />
           </div>
           <div className="grid grid-cols-2 gap-4 border-b border-gray-100 mb-4">
