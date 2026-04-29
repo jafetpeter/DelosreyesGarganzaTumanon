@@ -1,5 +1,5 @@
-import { useEffect } from "react"
-import EditGenderForm from "./components/EditGenderForm"
+import { useEffect } from "react";
+import EditGenderForm from "./components/EditGenderForm";
 import ToastMessage from "../../components/ToastMessage/ToastMessage";
 import { useToastMessage } from "../../hooks/useToastMessage";
 
@@ -10,14 +10,20 @@ const EditGenderPage = () => {
     }, []);
 
     const {
-      message: toastMessage, 
-      isVisible: toastMessageIsVisible, 
-      showToastMessage, 
-      closeToastMessage} = useToastMessage
-    ('', false)
+      message: toastMessage,
+      isFailed: toastMessageIsFailed,
+      isVisible: toastMessageIsVisible,
+      showToastMessage,
+      closeToastMessage,
+    } = useToastMessage("", false, false);
   return (
     <>
-        <ToastMessage message={toastMessage} isVisible={toastMessageIsVisible} onClose={closeToastMessage}/>
+        <ToastMessage
+          message={toastMessage}
+          isFailed={toastMessageIsFailed}
+          isVisible={toastMessageIsVisible}
+          onClose={closeToastMessage}
+        />
         <EditGenderForm onGenderUpdated={showToastMessage}/>
     </>
   )

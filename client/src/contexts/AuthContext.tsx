@@ -68,19 +68,26 @@ export const AuthProvider: FC<{children: ReactNode}> = ({children}) => {
                 } else {
                     localStorage.removeItem('token')
                     setUser(null);
-                    console.error(
-                        'Unexpected status error occured during checking authentication:',
-                        res.status
-                    );
+                    // For non-200 responses, treat as unauthenticated.
+                    // (Commonly 401 when the token is expired/invalid.)
+                    if (res.status !== 401) {
+                        console.error(
+                            'Unexpected status error occured during checking authentication:',
+                            res.status
+                        );
+                    }
                 }
             } catch (error) {
                 localStorage.removeItem('token');
                 setUser(null);
 
-                console.error(
-                    'Unexpected server error occured during checking authentication:',
-                    error
-                );
+                const status = (error as any)?.response?.status;
+                if (status !== 401) {
+                    console.error(
+                        'Unexpected server error occured during checking authentication:',
+                        error
+                    );
+                }
             }
 
             setLoading(false);

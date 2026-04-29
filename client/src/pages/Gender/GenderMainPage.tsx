@@ -10,6 +10,7 @@ const GenderMainPage = () => {
   const location = useLocation()
   const {
     message: toastMessage, 
+    isFailed: toastMessageIsFailed,
     isVisible: toastMessageisVisible, 
     showToastMessage, 
     closeToastMessage,
@@ -34,6 +35,7 @@ const GenderMainPage = () => {
     <>
     <ToastMessage 
     message={toastMessage} 
+    isFailed={toastMessageIsFailed}
     isVisible={toastMessageisVisible} 
     onClose={closeToastMessage} 
     />

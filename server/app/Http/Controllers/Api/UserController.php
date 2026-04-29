@@ -10,6 +10,15 @@ use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
+    private function buildProfilePictureUrl(?string $filename): ?string
+    {
+        if (!$filename) {
+            return null;
+        }
+
+        return url('storage/public/img/user/profile_pictures/' . $filename);
+    }
+
     public function loadUsers(Request $request)
     {
         $search = $request-> input('search');
@@ -35,8 +44,7 @@ class UserController extends Controller
         $users = $users->paginate(15);
 
         $users->getCollection()->transform(function ($user) {
-        $user->profile_picture = $user->profile_picture? url('storage/img/user/profile_pictures/' .
-        $user->profile_picture): null;
+        $user->profile_picture = $this->buildProfilePictureUrl($user->profile_picture);
 
     return $user;
 });
@@ -66,9 +74,10 @@ class UserController extends Controller
             $file = $request->file('add_user_profile_picture');
             $filenameWithExtension = $file->getClientOriginalName();
             $filename = pathinfo($filenameWithExtension, PATHINFO_FILENAME);
-            $filenameToStore = sha1($filename . '_' . time());
+            $extension = $file->getClientOriginalExtension();
+            $filenameToStore = sha1($filename . '_' . time()) . '.' . $extension;
             $file->storeAs('public/img/user/profile_pictures', $filenameToStore);
-            $validated['add_user_profile_picture'] = $filenameToStore;
+            $profilePicture = $filenameToStore;
         }
 
         $age = date_diff(date_create($validated['birth_date']), date_create('now'))->y;
@@ -119,7 +128,8 @@ class UserController extends Controller
             $file = $request->file('edit_user_profile_picture');
             $filenameWithExtension = $file->getClientOriginalName();
             $filename = pathinfo($filenameWithExtension, PATHINFO_FILENAME);
-            $filenameToStore = sha1($filename . '_' . time());
+            $extension = $file->getClientOriginalExtension();
+            $filenameToStore = sha1($filename . '_' . time()) . '.' . $extension;
             $file->storeAs('public/img/user/profile_pictures', $filenameToStore);
             $validated['edit_profile_picture'] = $filenameToStore;
 
@@ -139,8 +149,7 @@ class UserController extends Controller
             'username' => $validated ['username']
         ]);
 
-       $user->profile_picture = $user->profile_picture? url('storage/img/user/profile_pictures/' .
-        $user->profile_picture): null;
+       $user->profile_picture = $this->buildProfilePictureUrl($user->profile_picture);
 
         return response()->json([
             'message' => 'User Successfully Updated.',

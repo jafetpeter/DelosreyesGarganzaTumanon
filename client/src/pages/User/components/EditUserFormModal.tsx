@@ -47,6 +47,29 @@ const EditUserFormModal: FC<EditUserFormModalProps> = ({
     try {
       e.preventDefault();
 
+      const clientErrors: UserFieldErrors = {};
+
+      if (!firstName.trim())
+        clientErrors.first_name = ["The first name field is required."];
+      if (!lastName.trim())
+        clientErrors.last_name = ["The last name field is required."];
+      if (!gender) clientErrors.gender = ["The gender field is required."];
+      if (!birthDate)
+        clientErrors.birth_date = ["The birth date field is required."];
+      if (!username.trim())
+        clientErrors.username = ["The username field is required."];
+
+      if (Object.keys(clientErrors).length > 0) {
+        setErrors(clientErrors);
+        return;
+      }
+
+      if (!user) {
+        console.error("Unexpected user error occured during updating user: ", user);
+        return;
+      }
+
+      setErrors({});
       setLoadingUpdate(true);
 
       const formData = new FormData();
@@ -65,7 +88,7 @@ const EditUserFormModal: FC<EditUserFormModalProps> = ({
       formData.append("birth_date", birthDate);
       formData.append("username", username);
 
-      const res = await UserService.updateUser(user?.user_id!, formData);
+      const res = await UserService.updateUser(user.user_id, formData);
 
       if (res.status === 200) {
         setExistingProfilePicture(res.data.user.profile_picture ? res.data.user.profile_picture : null);
@@ -89,9 +112,14 @@ const EditUserFormModal: FC<EditUserFormModalProps> = ({
           res.status,
         );
       }
-    } catch (error: any) {
-      if (error.response && error.response.status === 422) {
-        setErrors(error.response.data.errors);
+    } catch (error: unknown) {
+      const axiosLikeError = error as { response?: { status?: number; data?: unknown } };
+      if (axiosLikeError.response?.status === 422) {
+        const data = axiosLikeError.response.data;
+        if (typeof data === "object" && data !== null && "errors" in data) {
+          const maybeErrors = (data as { errors?: UserFieldErrors }).errors;
+          if (maybeErrors) setErrors(maybeErrors);
+        }
       } else {
         console.error(
           "Unexpected server error occured during updating user: ",

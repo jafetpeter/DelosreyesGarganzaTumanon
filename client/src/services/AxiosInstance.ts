@@ -6,6 +6,7 @@ AxiosInstance.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
   if (token) {
+    config.headers = config.headers ?? {};
     config.headers["Authorization"] = `Bearer ${token}`;
   }
 
@@ -23,7 +24,8 @@ AxiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response.status !== 422) {
+    const status = error?.response?.status;
+    if (status !== 422 && status !== 401) {
       console.error("Unexpected response error: ", error);
     }
 

@@ -20,6 +20,18 @@ const AddGenderForm: FC<AddGenderFormprops> = ({
     try {
       e.preventDefault();
 
+      const clientErrors: GenderFieldErrors = {};
+
+      if (!gender.trim()) {
+        clientErrors.gender = ["The gender field is required."];
+      }
+
+      if (Object.keys(clientErrors).length > 0) {
+        setErrors(clientErrors);
+        return;
+      }
+
+      setErrors({});
       setLoadingStore(true);
 
       const res = await GenderService.storeGender({ gender });
@@ -36,9 +48,14 @@ const AddGenderForm: FC<AddGenderFormprops> = ({
           res.data,
         );
       }
-    } catch (error: any) {
-      if (error.response && error.response.status == 422) {
-        setErrors(error.response.data.errors);
+    } catch (error: unknown) {
+      const axiosLikeError = error as { response?: { status?: number; data?: unknown } };
+      if (axiosLikeError.response?.status === 422) {
+        const data = axiosLikeError.response.data;
+        if (typeof data === "object" && data !== null && "errors" in data) {
+          const maybeErrors = (data as { errors?: GenderFieldErrors }).errors;
+          if (maybeErrors) setErrors(maybeErrors);
+        }
       } else {
         console.error(
           "Unexpected server error occured during store gender: ",
